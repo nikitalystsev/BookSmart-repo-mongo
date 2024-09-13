@@ -1,4 +1,4 @@
-module github.com/nikitalystsev/Booksmart-repo-mongo
+module github.com/nikitalystsev/BookSmart-repo-mongo
 
 go 1.22.5
 
