@@ -24,11 +24,13 @@ func NewClient(url, username, password, dbName string) (*mongo.Client, error) {
 
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
+		fmt.Println("Error connecting to MongoDB")
 		return nil, err
 	}
 
 	err = client.Ping(ctx, nil)
 	if err != nil {
+		fmt.Println("Error pinging MongoDB")
 		return nil, err
 	}
 
