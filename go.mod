@@ -5,7 +5,7 @@ go 1.22.5
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.6.0
-	github.com/nikitalystsev/BookSmart-services v0.0.0-20240910225524-d39b2d5f7cdb
+	github.com/nikitalystsev/BookSmart-services v0.0.0-20240916211448-42517bf0a11c
 	github.com/sirupsen/logrus v1.9.3
 	go.mongodb.org/mongo-driver v1.16.1
 )
