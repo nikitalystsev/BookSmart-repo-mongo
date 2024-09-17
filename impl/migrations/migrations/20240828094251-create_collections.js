@@ -85,7 +85,7 @@ module.exports = {
                         reader_id: {bsonType: "binData"},
                         book_id: {bsonType: "binData"},
                         review: {bsonType: "string"},
-                        rating: {bsonType: "long", minimum: 0},
+                        rating: {bsonType: "int", minimum: 0},
                     }
                 }
             }, validationLevel: "strict", validationAction: "error"

@@ -48,7 +48,7 @@ func (rr *RatingRepo) GetByReaderAndBook(ctx context.Context, readerID, bookID u
 	}
 	if one.Err() != nil && errors.Is(one.Err(), mongo.ErrNoDocuments) {
 		rr.logger.Warnf("rating with this readerID и bookID not found: %s и %s", readerID, bookID)
-		return nil, errs.ErrReservationDoesNotExists
+		return nil, errs.ErrRatingDoesNotExists
 	}
 
 	var rating repomodels.RatingModel
@@ -89,7 +89,7 @@ func (rr *RatingRepo) GetByBookID(ctx context.Context, bookID uuid.UUID) ([]*mod
 
 	if len(coreRatings) == 0 {
 		rr.logger.Warnf("ratings with this bookID not found: %s", bookID)
-		return nil, errs.ErrReservationDoesNotExists
+		return nil, errs.ErrRatingDoesNotExists
 	}
 
 	rr.logger.Infof("found ratings with bookID: %s", bookID)
