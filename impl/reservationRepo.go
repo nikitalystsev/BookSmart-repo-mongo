@@ -39,34 +39,47 @@ func (rr *ReservationRepo) Create(ctx context.Context, reservation *models.Reser
 	return nil
 }
 
-func (rr *ReservationRepo) GetByReaderAndBook(ctx context.Context, readerID, bookID uuid.UUID) (*models.ReservationModel, error) {
-	rr.logger.Infof("find reservation with readerID и bookID: %s и %s", readerID, bookID)
+func (rr *ReservationRepo) GetByReaderAndBook(ctx context.Context, readerID, bookID uuid.UUID) ([]*models.ReservationModel, error) {
+	rr.logger.Infof("find reservations with readerID и bookID: %s и %s", readerID, bookID)
 
 	if err := rr.updateReservationStates(ctx); err != nil {
 		rr.logger.Errorf("error updating reservations status: %v", err)
 		return nil, err
 	}
 
-	one := rr.db.FindOne(ctx, bson.M{"reader_id": readerID, "book_id": bookID})
+	cursor, err := rr.db.Find(ctx, bson.M{"reader_id": readerID, "book_id": bookID})
 
-	if one.Err() != nil && !errors.Is(one.Err(), mongo.ErrNoDocuments) {
-		rr.logger.Errorf("error selecting reservation: %v", one.Err())
-		return nil, one.Err()
-	}
-	if one.Err() != nil && errors.Is(one.Err(), mongo.ErrNoDocuments) {
-		rr.logger.Warnf("reservation with this readerID и bookID not found: %s и %s", readerID, bookID)
-		return nil, errs.ErrReservationDoesNotExists
-	}
-
-	var reservation repomodels.ReservationModel
-	if err := one.Decode(&reservation); err != nil {
-		rr.logger.Errorf("error decoding reservation: %v", err)
+	if err != nil {
+		rr.logger.Errorf("error selecting reservations: %v", err)
 		return nil, err
+	}
+
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err = cursor.Close(ctx)
+		if err != nil {
+			fmt.Println("error close cursor")
+		}
+	}(cursor, ctx)
+
+	var coreReservations []*repomodels.ReservationModel
+	if err = cursor.All(ctx, &coreReservations); err != nil {
+		rr.logger.Printf("error decoding reservations: %v", err)
+		return nil, err
+	}
+
+	if len(coreReservations) == 0 {
+		rr.logger.Warnf("reservations with this readerID and bookID not found: %s, %s", readerID, bookID)
+		return nil, errs.ErrReservationDoesNotExists
 	}
 
 	rr.logger.Infof("found reservation with readerID и bookID: %s и %s", readerID, bookID)
 
-	return rr.convertToReservationModel(&reservation), nil
+	reservations := make([]*models.ReservationModel, len(coreReservations))
+	for i, coreReservation := range coreReservations {
+		reservations[i] = rr.convertToReservationModel(coreReservation)
+	}
+
+	return reservations, nil
 }
 
 func (rr *ReservationRepo) GetByID(ctx context.Context, ID uuid.UUID) (*models.ReservationModel, error) {
